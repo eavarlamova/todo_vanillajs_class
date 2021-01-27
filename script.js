@@ -29,6 +29,10 @@ const filterArray = (array, value = true, key = 'status') => (
   array.filter((item) => item[key] !== value)
 );
 
+const mapArray = (array, id, key, value) => (
+  array.map((item) => (item.id === id ? { ...item, [key]: value } : item))
+);
+
 const getCurrentParentId = (target) => Number(target.parentElement.getAttribute('id'));
 
 const renderTodos = (array) => {
@@ -63,6 +67,7 @@ class Todo {
     this.manageFunction = this.manageFunction.bind(this);
     this.deleteTodo = this.deleteTodo.bind(this);
     this.deleteCompletedTodos = this.deleteCompletedTodos.bind(this);
+    this.saveEditTodo = this.saveEditTodo.bind(this);
   }
 
   controllers() {
@@ -73,6 +78,7 @@ class Todo {
     todosSelector.addEventListener('click', (event) => event.target.closest('.delete-todo') && this.deleteTodo(event));
     buttonDeleteCompletedSelector.addEventListener('click', this.deleteCompletedTodos);
     todosSelector.addEventListener('dblclick', (event) => event.target.closest('.text-todo') && showEditInput(event));
+    todosSelector.addEventListener('keypress', (event) => event.target.closest('.edit-todo') && event.key === ENTER && this.saveEditTodo(event));
   }
 
   manageFunction() {
@@ -119,15 +125,19 @@ class Todo {
     this.manageFunction();
   }
 
+  saveEditTodo({ target }) {
+    const currentId = getCurrentParentId(target);
+    const newText = target.value;
+    this.todos = mapArray(this.todos, currentId, 'text', newText);
+    this.manageFunction()
+  }
+
   counterTodos() {
     const lengthCompletedTodos = filterArray(this.todos, false).length;
     const lengthAllTodos = this.todos.length;
     setCounter(lengthCompletedTodos, lengthAllTodos);
     setCheckAllStatus(lengthCompletedTodos === lengthAllTodos);
   }
-
-
-
 }
 
 const newTodo = new Todo();
