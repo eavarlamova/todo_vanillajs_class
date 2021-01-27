@@ -41,6 +41,15 @@ const renderTodos = (array) => {
      </li>`
   ), '');
 };
+
+const showEditInput = ({ target }) => {
+  const newEditElemnt = document.createElement('input');
+  newEditElemnt.className = 'edit-todo';
+  newEditElemnt.value = target.innerHTML.trim();
+  target.parentElement.replaceChild(newEditElemnt, target);
+  newEditElemnt.focus();
+};
+
 class Todo {
   constructor() {
     this.todos = [];
@@ -63,6 +72,7 @@ class Todo {
     checkAllSelector.addEventListener('change', this.checkAllTodos);
     todosSelector.addEventListener('click', (event) => event.target.closest('.delete-todo') && this.deleteTodo(event));
     buttonDeleteCompletedSelector.addEventListener('click', this.deleteCompletedTodos);
+    todosSelector.addEventListener('dblclick', (event) => event.target.closest('.text-todo') && showEditInput(event));
   }
 
   manageFunction() {
@@ -115,6 +125,7 @@ class Todo {
     setCounter(lengthCompletedTodos, lengthAllTodos);
     setCheckAllStatus(lengthCompletedTodos === lengthAllTodos);
   }
+
 
 
 }
