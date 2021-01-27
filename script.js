@@ -3,10 +3,12 @@ const inputAddSelector = document.querySelector('.input-add');
 const todosSelector = document.querySelector('.todos');
 const checkAllSelector = document.querySelector('.check-all');
 const couterTodosSelector = document.querySelector('.couter-todos');
-const buttonDeleteCompletedSelector = document.querySelector('.button-delete-completed')
+const buttonDeleteCompletedSelector = document.querySelector('.button-delete-completed');
 const tabsSelector = document.querySelector('.tabs');
+const paginationSelector = document.querySelector('.pagination');
 
 const ENTER = 'Enter';
+const MAX_TODOS = 5;
 
 const normolizeText = (text) => (
   text
@@ -18,6 +20,9 @@ const normolizeText = (text) => (
     .replace(/\u0027/gu, '&#x27;')
     .replace(/\u002F/gu, '&#x2F;')
 );
+
+const normalizeCurrentPage = (page, lastPage) => (page > lastPage ? lastPage : page) || 1;
+
 const setCheckAllStatus = (status = false) => {
   checkAllSelector.checked = status;
 };
@@ -33,6 +38,17 @@ const filterArray = (array, value = true, key = 'status') => (
 const mapArray = (array, id, key, value) => (
   array.map((item) => (item.id === id ? { ...item, [key]: value } : item))
 );
+
+const setActiveElements = (tab = 'all-tab', page = 1, allPages) => {
+  const renderTabs = ['all', 'active', 'completed'].reduce((str, item) => (
+    `${str}<button class="tab btn ${`${item}-tab` === tab ? 'btn-info' : 'btn-light'} col" id="${item}-tab"> ${item} </button>`
+  ), '');
+  const renderPages = Array.from({ length: allPages }, (v, k) => k + 1).reduce((str, item) => (
+    `${str}<li class="page-item ${item === page && 'active'}" id="${item}"><a class="page-link" href="#">${item}</a></li>`
+  ), '');
+  tabsSelector.innerHTML = renderTabs;
+  paginationSelector.innerHTML = renderPages;
+};
 
 const getCurrentParentId = (target) => Number(target.parentElement.getAttribute('id'));
 
@@ -55,6 +71,23 @@ const showEditInput = ({ target }) => {
   newEditElemnt.focus();
 };
 
+const getLastPage = (array) => Math.ceil(array.length / MAX_TODOS);
+
+const getFilterTabTodos = (array, tab) => {
+  let currentTodos = array;
+  if (tab !== 'all-tab') {
+    const filterFlag = tab === 'completed-tab';
+    currentTodos = filterArray(array, !filterFlag);
+  }
+  return currentTodos;
+};
+
+const getFilterPageTodos = (array, page = 1) => {
+  const start = (page - 1) * MAX_TODOS;
+  const end = start + MAX_TODOS;
+  return array.slice(start, end);
+};
+
 class Todo {
   constructor() {
     this.todos = [];
@@ -69,7 +102,8 @@ class Todo {
     this.deleteTodo = this.deleteTodo.bind(this);
     this.deleteCompletedTodos = this.deleteCompletedTodos.bind(this);
     this.saveEditTodo = this.saveEditTodo.bind(this);
-    this.chooseTab = this.chooseTab.bind(this);
+    this.setCurrentTab = this.setCurrentTab.bind(this);
+    this.setCurrentPage = this.setCurrentPage.bind(this);
   }
 
   controllers() {
@@ -81,18 +115,18 @@ class Todo {
     buttonDeleteCompletedSelector.addEventListener('click', this.deleteCompletedTodos);
     todosSelector.addEventListener('dblclick', (event) => event.target.closest('.text-todo') && showEditInput(event));
     todosSelector.addEventListener('keypress', (event) => event.target.closest('.edit-todo') && event.key === ENTER && this.saveEditTodo(event));
-    tabsSelector.addEventListener('click', this.chooseTab);
+    tabsSelector.addEventListener('click', this.setCurrentTab);
+    paginationSelector.addEventListener('click', this.setCurrentPage);
   }
 
   manageFunction() {
-    let currentTodos = this.todos;
-    if (this.currentTab !== 'all-tab') {
-      const filterFlag = this.currentTab === 'completed-tab';
-      currentTodos = filterArray(this.todos, !filterFlag);
-    }
+    let currentTodos = getFilterTabTodos(this.todos, this.currentTab);
+    const lastPage = getLastPage(currentTodos);
+    this.currentPage = normalizeCurrentPage(this.currentPage, lastPage);
+    currentTodos = getFilterPageTodos(currentTodos, this.currentPage);
     renderTodos(currentTodos);
-
     this.counterTodos();
+    setActiveElements(this.currentTab, this.currentPage, lastPage);
   }
 
   addTodo() {
@@ -104,6 +138,8 @@ class Todo {
         id: Math.random(),
       };
       this.todos = [...this.todos, newTodo];
+      this.currentTab = 'all-tab';
+      this.currentPage = getLastPage(this.todos);
       inputAddSelector.value = null;
       this.manageFunction();
     }
@@ -144,11 +180,17 @@ class Todo {
     const lengthCompletedTodos = filterArray(this.todos, false).length;
     const lengthAllTodos = this.todos.length;
     setCounter(lengthCompletedTodos, lengthAllTodos);
-    setCheckAllStatus(lengthCompletedTodos === lengthAllTodos);
+    setCheckAllStatus(lengthCompletedTodos === lengthAllTodos && lengthAllTodos);
   }
 
-  chooseTab({ target }) {
+  setCurrentTab({ target }) {
     this.currentTab = target.getAttribute('id');
+    this.currentPage = 1;
+    this.manageFunction();
+  }
+
+  setCurrentPage({ target }) {
+    this.currentPage = Number(target.innerHTML);
     this.manageFunction();
   }
 }
