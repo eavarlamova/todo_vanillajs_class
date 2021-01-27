@@ -1,7 +1,7 @@
 const buttonAddSelector = document.querySelector('.button-add');
 const inputAddSelector = document.querySelector('.input-add');
 const todosSelector = document.querySelector('.todos');
-// const checkTodoSelector = document.querySelector('.check-todo');
+const checkAllSelector = document.querySelector('.check-all');
 
 const ENTER = 'Enter';
 
@@ -34,12 +34,14 @@ class Todo {
 
     this.addTodo = this.addTodo.bind(this);
     this.checkTodo = this.checkTodo.bind(this);
+    this.checkAllTodos = this.checkAllTodos.bind(this);
   }
 
   controllers() {
     buttonAddSelector.addEventListener('click', this.addTodo);
     inputAddSelector.addEventListener('keypress', (event) => event.key === ENTER && this.addTodo());
     todosSelector.addEventListener('change', (event) => event.target.closest('.check-todo') && this.checkTodo(event));
+    checkAllSelector.addEventListener('change', this.checkAllTodos);
   }
 
   addTodo() {
@@ -61,6 +63,11 @@ class Todo {
     const currentStatus = target.checked;
     this.todos = this.todos
       .map((item) => (item.id === currentId ? { ...item, status: currentStatus } : item));
+    renderTodos(this.todos);
+  }
+
+  checkAllTodos({ target: { checked: currentStatus } }) {
+    this.todos = this.todos.map((item) => ({ ...item, status: currentStatus }));
     renderTodos(this.todos);
   }
 }
