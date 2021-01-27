@@ -3,6 +3,8 @@ const inputAddSelector = document.querySelector('.input-add');
 const todosSelector = document.querySelector('.todos');
 const checkAllSelector = document.querySelector('.check-all');
 const couterTodosSelector = document.querySelector('.couter-todos');
+const buttonDeleteCompletedSelector = document.querySelector('.button-delete-completed')
+
 const ENTER = 'Enter';
 
 const normolizeText = (text) => (
@@ -51,6 +53,7 @@ class Todo {
     this.counterTodos = this.counterTodos.bind(this);
     this.manageFunction = this.manageFunction.bind(this);
     this.deleteTodo = this.deleteTodo.bind(this);
+    this.deleteCompletedTodos = this.deleteCompletedTodos.bind(this);
   }
 
   controllers() {
@@ -59,6 +62,7 @@ class Todo {
     todosSelector.addEventListener('change', (event) => event.target.closest('.check-todo') && this.checkTodo(event));
     checkAllSelector.addEventListener('change', this.checkAllTodos);
     todosSelector.addEventListener('click', (event) => event.target.closest('.delete-todo') && this.deleteTodo(event));
+    buttonDeleteCompletedSelector.addEventListener('click', this.deleteCompletedTodos);
   }
 
   manageFunction() {
@@ -97,6 +101,11 @@ class Todo {
   deleteTodo({ target }) {
     const currentId = getCurrentParentId(target);
     this.todos = filterArray(this.todos, currentId, 'id');
+    this.manageFunction();
+  }
+
+  deleteCompletedTodos() {
+    this.todos = filterArray(this.todos);
     this.manageFunction();
   }
 
