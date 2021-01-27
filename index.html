@@ -13,7 +13,7 @@
 <body>
     <div class="d-flex row justify-content-center container m-auto">
         <h1>Welcome to the TODO`s manager</h1>
-        <h3 class="row">
+        <h3>
             we use in the TODO
             <a href="http://vanilla-js.com/" class="mr-2 ml-2">
                 VanillaJS
@@ -34,7 +34,11 @@
         </div>
 
         <h6 class="couter-todos"></h6>
-
+        <div class="tabs w-100 d-flex">
+            <button class="tab btn btn-light col" id="all-tab"> all </button>
+            <button class="tab btn btn-light col" id="active-tab"> active </button>
+            <button class="tab btn btn-light col" id="completed-tab"> completed </button>
+        </div>
         <ul class="todos list-group w-100">
             
         </ul>

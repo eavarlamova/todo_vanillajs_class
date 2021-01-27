@@ -4,6 +4,7 @@ const todosSelector = document.querySelector('.todos');
 const checkAllSelector = document.querySelector('.check-all');
 const couterTodosSelector = document.querySelector('.couter-todos');
 const buttonDeleteCompletedSelector = document.querySelector('.button-delete-completed')
+const tabsSelector = document.querySelector('.tabs');
 
 const ENTER = 'Enter';
 
@@ -57,7 +58,7 @@ const showEditInput = ({ target }) => {
 class Todo {
   constructor() {
     this.todos = [];
-    this.currentTab = 'all';
+    this.currentTab = 'all-tab';
     this.currentPage = 1;
 
     this.addTodo = this.addTodo.bind(this);
@@ -68,6 +69,7 @@ class Todo {
     this.deleteTodo = this.deleteTodo.bind(this);
     this.deleteCompletedTodos = this.deleteCompletedTodos.bind(this);
     this.saveEditTodo = this.saveEditTodo.bind(this);
+    this.chooseTab = this.chooseTab.bind(this);
   }
 
   controllers() {
@@ -79,10 +81,16 @@ class Todo {
     buttonDeleteCompletedSelector.addEventListener('click', this.deleteCompletedTodos);
     todosSelector.addEventListener('dblclick', (event) => event.target.closest('.text-todo') && showEditInput(event));
     todosSelector.addEventListener('keypress', (event) => event.target.closest('.edit-todo') && event.key === ENTER && this.saveEditTodo(event));
+    tabsSelector.addEventListener('click', this.chooseTab);
   }
 
   manageFunction() {
-    renderTodos(this.todos);
+    let currentTodos = this.todos;
+    if (this.currentTab !== 'all-tab') {
+      const filterFlag = this.currentTab === 'completed-tab';
+      currentTodos = filterArray(this.todos, !filterFlag);
+    }
+    renderTodos(currentTodos);
 
     this.counterTodos();
   }
@@ -129,7 +137,7 @@ class Todo {
     const currentId = getCurrentParentId(target);
     const newText = target.value;
     this.todos = mapArray(this.todos, currentId, 'text', newText);
-    this.manageFunction()
+    this.manageFunction();
   }
 
   counterTodos() {
@@ -137,6 +145,11 @@ class Todo {
     const lengthAllTodos = this.todos.length;
     setCounter(lengthCompletedTodos, lengthAllTodos);
     setCheckAllStatus(lengthCompletedTodos === lengthAllTodos);
+  }
+
+  chooseTab({ target }) {
+    this.currentTab = target.getAttribute('id');
+    this.manageFunction();
   }
 }
 
