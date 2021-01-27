@@ -1,6 +1,7 @@
 const buttonAddSelector = document.querySelector('.button-add');
 const inputAddSelector = document.querySelector('.input-add');
 const todosSelector = document.querySelector('.todos');
+// const checkTodoSelector = document.querySelector('.check-todo');
 
 const ENTER = 'Enter';
 
@@ -32,11 +33,13 @@ class Todo {
     this.currentPage = 1;
 
     this.addTodo = this.addTodo.bind(this);
+    this.checkTodo = this.checkTodo.bind(this);
   }
 
   controllers() {
     buttonAddSelector.addEventListener('click', this.addTodo);
     inputAddSelector.addEventListener('keypress', (event) => event.key === ENTER && this.addTodo());
+    todosSelector.addEventListener('change', (event) => event.target.closest('.check-todo') && this.checkTodo(event));
   }
 
   addTodo() {
@@ -45,12 +48,20 @@ class Todo {
       const newTodo = {
         text: newText,
         status: false,
-        id: false,
+        id: Math.random(),
       };
       this.todos = [...this.todos, newTodo];
       renderTodos(this.todos);
       inputAddSelector.value = null;
     }
+  }
+
+  checkTodo({ target }) {
+    const currentId = Number(target.parentElement.getAttribute('id'));
+    const currentStatus = target.checked;
+    this.todos = this.todos
+      .map((item) => (item.id === currentId ? { ...item, status: currentStatus } : item));
+    renderTodos(this.todos);
   }
 }
 
