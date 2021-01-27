@@ -24,8 +24,10 @@ const setCounter = (lengthCompletedTodos, lengthAllTodos) => {
 };
 
 const filterArray = (array, value = true, key = 'status') => (
-  array.filter((item) => item[key] === value)
+  array.filter((item) => item[key] !== value)
 );
+
+const getCurrentParentId = (target) => Number(target.parentElement.getAttribute('id'));
 
 const renderTodos = (array) => {
   todosSelector.innerHTML = array.reduce((str, { id, text, status }) => (
@@ -48,6 +50,7 @@ class Todo {
     this.checkAllTodos = this.checkAllTodos.bind(this);
     this.counterTodos = this.counterTodos.bind(this);
     this.manageFunction = this.manageFunction.bind(this);
+    this.deleteTodo = this.deleteTodo.bind(this);
   }
 
   controllers() {
@@ -55,6 +58,7 @@ class Todo {
     inputAddSelector.addEventListener('keypress', (event) => event.key === ENTER && this.addTodo());
     todosSelector.addEventListener('change', (event) => event.target.closest('.check-todo') && this.checkTodo(event));
     checkAllSelector.addEventListener('change', this.checkAllTodos);
+    todosSelector.addEventListener('click', (event) => event.target.closest('.delete-todo') && this.deleteTodo(event));
   }
 
   manageFunction() {
@@ -78,7 +82,7 @@ class Todo {
   }
 
   checkTodo({ target }) {
-    const currentId = Number(target.parentElement.getAttribute('id'));
+    const currentId = getCurrentParentId(target);
     const currentStatus = target.checked;
     this.todos = this.todos
       .map((item) => (item.id === currentId ? { ...item, status: currentStatus } : item));
@@ -90,12 +94,20 @@ class Todo {
     this.manageFunction();
   }
 
+  deleteTodo({ target }) {
+    const currentId = getCurrentParentId(target);
+    this.todos = filterArray(this.todos, currentId, 'id');
+    this.manageFunction();
+  }
+
   counterTodos() {
-    const lengthCompletedTodos = filterArray(this.todos).length;
+    const lengthCompletedTodos = filterArray(this.todos, false).length;
     const lengthAllTodos = this.todos.length;
     setCounter(lengthCompletedTodos, lengthAllTodos);
     setCheckAllStatus(lengthCompletedTodos === lengthAllTodos);
   }
+
+
 }
 
 const newTodo = new Todo();
