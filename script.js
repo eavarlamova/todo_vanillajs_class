@@ -2,7 +2,7 @@ const buttonAddSelector = document.querySelector('.button-add');
 const inputAddSelector = document.querySelector('.input-add');
 const todosSelector = document.querySelector('.todos');
 const checkAllSelector = document.querySelector('.check-all');
-
+const couterTodosSelector = document.querySelector('.couter-todos');
 const ENTER = 'Enter';
 
 const normolizeText = (text) => (
@@ -14,6 +14,17 @@ const normolizeText = (text) => (
     .replace(/\u0022/gu, '&quot;')
     .replace(/\u0027/gu, '&#x27;')
     .replace(/\u002F/gu, '&#x2F;')
+);
+const setCheckAllStatus = (status = false) => {
+  checkAllSelector.checked = status;
+};
+
+const setCounter = (lengthCompletedTodos, lengthAllTodos) => {
+  couterTodosSelector.innerHTML = `You done ${lengthCompletedTodos}/${lengthAllTodos} todos`;
+};
+
+const filterArray = (array, value = true, key = 'status') => (
+  array.filter((item) => item[key] === value)
 );
 
 const renderTodos = (array) => {
@@ -35,6 +46,8 @@ class Todo {
     this.addTodo = this.addTodo.bind(this);
     this.checkTodo = this.checkTodo.bind(this);
     this.checkAllTodos = this.checkAllTodos.bind(this);
+    this.counterTodos = this.counterTodos.bind(this);
+    this.manageFunction = this.manageFunction.bind(this);
   }
 
   controllers() {
@@ -42,6 +55,12 @@ class Todo {
     inputAddSelector.addEventListener('keypress', (event) => event.key === ENTER && this.addTodo());
     todosSelector.addEventListener('change', (event) => event.target.closest('.check-todo') && this.checkTodo(event));
     checkAllSelector.addEventListener('change', this.checkAllTodos);
+  }
+
+  manageFunction() {
+    renderTodos(this.todos);
+
+    this.counterTodos();
   }
 
   addTodo() {
@@ -53,8 +72,8 @@ class Todo {
         id: Math.random(),
       };
       this.todos = [...this.todos, newTodo];
-      renderTodos(this.todos);
       inputAddSelector.value = null;
+      this.manageFunction();
     }
   }
 
@@ -63,12 +82,19 @@ class Todo {
     const currentStatus = target.checked;
     this.todos = this.todos
       .map((item) => (item.id === currentId ? { ...item, status: currentStatus } : item));
-    renderTodos(this.todos);
+    this.manageFunction();
   }
 
   checkAllTodos({ target: { checked: currentStatus } }) {
     this.todos = this.todos.map((item) => ({ ...item, status: currentStatus }));
-    renderTodos(this.todos);
+    this.manageFunction();
+  }
+
+  counterTodos() {
+    const lengthCompletedTodos = filterArray(this.todos).length;
+    const lengthAllTodos = this.todos.length;
+    setCounter(lengthCompletedTodos, lengthAllTodos);
+    setCheckAllStatus(lengthCompletedTodos === lengthAllTodos);
   }
 }
 
