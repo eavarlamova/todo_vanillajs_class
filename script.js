@@ -1,14 +1,14 @@
-const buttonAddSelector = document.querySelector('.button-add');
-const inputAddSelector = document.querySelector('.input-add');
+const tabsSelector = document.querySelector('.tabs');
 const todosSelector = document.querySelector('.todos');
 const checkAllSelector = document.querySelector('.check-all');
+const inputAddSelector = document.querySelector('.input-add');
+const buttonAddSelector = document.querySelector('.button-add');
+const paginationSelector = document.querySelector('.pagination');
 const couterTodosSelector = document.querySelector('.couter-todos');
 const buttonDeleteCompletedSelector = document.querySelector('.button-delete-completed');
-const tabsSelector = document.querySelector('.tabs');
-const paginationSelector = document.querySelector('.pagination');
 
-const ENTER = 'Enter';
 const MAX_TODOS = 5;
+const ENTER = 'Enter';
 
 const normolizeText = (text) => (
   text
@@ -56,17 +56,17 @@ const renderTodos = (array) => {
   todosSelector.innerHTML = array.reduce((str, { id, text, status }) => (
     `${str}
      <li class="todo list-group-item d-flex justify-content-between align-items-center" id="${id}">
-                <input class="check-todo" type="checkbox" ${status && 'checked'}>
-                <span class="text-todo"> ${text} </span>
-                <button class="delete-todo btn-close" type="button" aria-label="Close"></button>
+                <input class="col check-todo" type="checkbox" ${status && 'checked'}>
+                <span class="col-10 text-break text-todo"> ${text} </span>
+                <button class="col delete-todo btn-close" type="button" aria-label="Close"></button>
      </li>`
   ), '');
 };
 
 const showEditInput = ({ target }) => {
   const newEditElemnt = document.createElement('input');
-  newEditElemnt.className = 'edit-todo';
-  newEditElemnt.value = target.innerHTML.trim();
+  newEditElemnt.className = 'edit-todo col-10';
+  newEditElemnt.value = target.textContent.trim();
   target.parentElement.replaceChild(newEditElemnt, target);
   newEditElemnt.focus();
 };
@@ -91,32 +91,33 @@ const getFilterPageTodos = (array, page = 1) => {
 class Todo {
   constructor() {
     this.todos = [];
-    this.currentTab = 'all-tab';
     this.currentPage = 1;
+    this.currentTab = 'all-tab';
 
     this.addTodo = this.addTodo.bind(this);
     this.checkTodo = this.checkTodo.bind(this);
-    this.checkAllTodos = this.checkAllTodos.bind(this);
-    this.counterTodos = this.counterTodos.bind(this);
-    this.manageFunction = this.manageFunction.bind(this);
     this.deleteTodo = this.deleteTodo.bind(this);
-    this.deleteCompletedTodos = this.deleteCompletedTodos.bind(this);
+    this.counterTodos = this.counterTodos.bind(this);
     this.saveEditTodo = this.saveEditTodo.bind(this);
     this.setCurrentTab = this.setCurrentTab.bind(this);
+    this.checkAllTodos = this.checkAllTodos.bind(this);
     this.setCurrentPage = this.setCurrentPage.bind(this);
+    this.manageFunction = this.manageFunction.bind(this);
+    this.deleteCompletedTodos = this.deleteCompletedTodos.bind(this);
   }
 
   controllers() {
     buttonAddSelector.addEventListener('click', this.addTodo);
+    tabsSelector.addEventListener('click', this.setCurrentTab);
+    checkAllSelector.addEventListener('change', this.checkAllTodos);
+    paginationSelector.addEventListener('click', this.setCurrentPage);
+    buttonDeleteCompletedSelector.addEventListener('click', this.deleteCompletedTodos);
     inputAddSelector.addEventListener('keypress', (event) => event.key === ENTER && this.addTodo());
     todosSelector.addEventListener('change', (event) => event.target.closest('.check-todo') && this.checkTodo(event));
-    checkAllSelector.addEventListener('change', this.checkAllTodos);
-    todosSelector.addEventListener('click', (event) => event.target.closest('.delete-todo') && this.deleteTodo(event));
-    buttonDeleteCompletedSelector.addEventListener('click', this.deleteCompletedTodos);
     todosSelector.addEventListener('dblclick', (event) => event.target.closest('.text-todo') && showEditInput(event));
+    todosSelector.addEventListener('click', (event) => event.target.closest('.delete-todo') && this.deleteTodo(event));
+    todosSelector.addEventListener('focusout', (event) => event.target.closest('.edit-todo') && this.manageFunction());
     todosSelector.addEventListener('keypress', (event) => event.target.closest('.edit-todo') && event.key === ENTER && this.saveEditTodo(event));
-    tabsSelector.addEventListener('click', this.setCurrentTab);
-    paginationSelector.addEventListener('click', this.setCurrentPage);
   }
 
   manageFunction() {
@@ -148,8 +149,7 @@ class Todo {
   checkTodo({ target }) {
     const currentId = getCurrentParentId(target);
     const currentStatus = target.checked;
-    this.todos = this.todos
-      .map((item) => (item.id === currentId ? { ...item, status: currentStatus } : item));
+    this.todos = mapArray(this.todos, currentId, 'status', currentStatus);
     this.manageFunction();
   }
 
@@ -171,8 +171,8 @@ class Todo {
 
   saveEditTodo({ target }) {
     const currentId = getCurrentParentId(target);
-    const newText = target.value;
-    this.todos = mapArray(this.todos, currentId, 'text', newText);
+    const newText = target.value.trim();
+    if (newText) this.todos = mapArray(this.todos, currentId, 'text', newText);
     this.manageFunction();
   }
 
